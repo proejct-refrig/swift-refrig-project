@@ -7,12 +7,29 @@
 
 import SwiftUI
 
-struct LoginViewModel: View {
-    var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+class LoginViewModel: ObservableObject {
+    @AppStorage("jwt") var jwtToken: String = ""
+    @AppStorage("isLoggedIn") var isLoggedIn: Bool = false
+    
+    func fetchJWT() {
+        // jwt 주는 엔드포인트 알아오기
+        guard let url = URL(string: "https://your.backend.com/api/auth/kakao") else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let data = data,
+               let result = try? JSONDecoder().decode(JWTResponse.self, from: data) {
+                DispatchQueue.main.async{
+                    self.jwtToken = result.jwtToken
+                    self.isLoggedIn = true
+                }
+            }
+        }.resume()
     }
 }
 
-#Preview {
-    LoginViewModel()
+struct JWTResponse: Codable {
+    let jwtToken: String
 }
