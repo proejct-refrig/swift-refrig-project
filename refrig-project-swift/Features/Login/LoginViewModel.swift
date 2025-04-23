@@ -6,27 +6,29 @@
 //
 
 import SwiftUI
+import AuthenticationServices
 
-class LoginViewModel: ObservableObject {
-    @AppStorage("jwt") var jwtToken: String = ""
+class LoginViewModel: NSObject, ObservableObject {
+    @AppStorage("jwtToken") var jwtToken: String = ""
     @AppStorage("isLoggedIn") var isLoggedIn: Bool = false
     
-    func fetchJWT() {
-        // jwt 주는 엔드포인트 알아오기
-        guard let url = URL(string: "https://your.backend.com/api/auth/kakao") else { return }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let data = data,
-               let result = try? JSONDecoder().decode(JWTResponse.self, from: data) {
-                DispatchQueue.main.async{
-                    self.jwtToken = result.jwtToken
-                    self.isLoggedIn = true
-                }
-            }
-        }.resume()
+    private let scheme = "myapp"
+    private let callbackHost = "login-callback"
+    
+    // MARK: - 딥링크에서 jwt토큰 추출 후 저장
+    func handleIncomingURL(_ url: URL) {
+        guard url.scheme == "myapp",
+              url.host == "login-success",
+              let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              let token = components.queryItems?.first(where: { $0.name == "token" })?.value else {
+            print("딥링크 URL 파싱 실패")
+            return
+        }
+
+        DispatchQueue.main.async {
+            self.jwtToken = token
+            self.isLoggedIn = true
+        }
     }
 }
 

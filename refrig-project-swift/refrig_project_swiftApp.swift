@@ -9,9 +9,15 @@ import SwiftUI
 
 @main
 struct refrig_project_swiftApp: App {
+    @StateObject var loginViewModel = LoginViewModel()
+    
     var body: some Scene {
         WindowGroup {
             RootView()
+                .environmentObject(loginViewModel)
+                .onOpenURL { url in
+                    loginViewModel.handleIncomingURL(url)
+                }
         }
     }
 }

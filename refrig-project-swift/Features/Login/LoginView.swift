@@ -12,7 +12,8 @@ struct LoginView: View {
     @State private var showLogo = false
     @State private var showText = false
     @State private var showButton = false
-    @State private var showSafari = false
+    
+    @StateObject private var viewModel = LoginViewModel()
     
     var body: some View {
         VStack {
@@ -36,7 +37,10 @@ struct LoginView: View {
             Spacer()
             
             Button(action: {
-                showSafari = true
+                // 웹페이지를 백엔드에서 구성한 화면으로 열기
+                if let url = URL(string: "https://your.backend.com/auth/kakao/login") {
+                    UIApplication.shared.open(url)
+                }
             }) {
                 // 하단 로그인 버튼
                 AppImages.loginImage
@@ -44,15 +48,6 @@ struct LoginView: View {
                     .offset(y: showButton ? 0 : 20)
                     .animation(.easeOut(duration: 0.6).delay(0.6), value: showButton)
                     .padding(.bottom, 30)
-            }
-            .sheet(isPresented: $showSafari) {
-                SafariView(url: kakaoAuthUrl)
-            }
-            
-            var kakaoAuthUrl: URL {
-                // REST API 키 없이 백엔드가 만든 URL만 호출
-                // 카카오 화면 호출하는 api 주소 받아야함.
-                return URL(string: "https://your.backend.com/auth/kakao/login")!
             }
         }
         .frame(maxHeight: .infinity)
@@ -65,18 +60,6 @@ struct LoginView: View {
                 showButton = true
             }
         }
-    }
-}
-
-struct SafariView: UIViewControllerRepresentable {
-    let url: URL
-    
-    func makeUIViewController(context: Context) -> SFSafariViewController  {
-        SFSafariViewController(url: url)
-    }
-    
-    func updateUIViewController(_ vc: SFSafariViewController, context: Context) {
-        // ...
     }
 }
 
